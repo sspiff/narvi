@@ -1,0 +1,3 @@
+
+#define HAVE_POSIX_MEMALIGN 1
+

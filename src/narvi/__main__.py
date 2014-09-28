@@ -234,6 +234,14 @@ lswordschemes_parser = subparsers.add_parser('lswordschemes')
 lswordschemes_parser.set_defaults(func=cmd_lswordschemes)
 
 
+#
+#
+def cmd_license(args, pwh):
+	sys.stdout.write(__loader__.get_data('LICENSE.md'))
+license_parser = subparsers.add_parser('license')
+license_parser.set_defaults(func=cmd_license)
+
+
 
 args = parser.parse_args()
 

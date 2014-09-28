@@ -25,4 +25,5 @@
 
 
 TheBuild.zipcontents['__main__.py'] = os.path.join(TheBuild.srcdir, '__main__.py')
+TheBuild.zipcontents['LICENSE.md'] = os.path.join(TheBuild.sandboxroot, 'LICENSE.md')
 

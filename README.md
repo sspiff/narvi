@@ -54,7 +54,7 @@ scrypt is designed such that even if an attacker knows: your salt, the scrypt ha
 
 Scrypt is described in detail in [Stronger Key Derivation via Sequential Memory-Hard Functions](http://www.tarsnap.com/scrypt/scrypt.pdf).
 
-Using one-way hashes as service-specific passwords is not new.  See, for example, [Stronger Password Authentication Using Browser Extensions](http://crypto.stanford.edu/PwdHash/pwdhash.pdf).
+Using one-way hashes as service-specific passwords is not new.  See, for example, [A Convenient Method for Securely Managing Passwords](https://jhalderm.com/pub/papers/password-www05.pdf) and [Stronger Password Authentication Using Browser Extensions](http://crypto.stanford.edu/PwdHash/pwdhash.pdf).
 
 ## Other narvi Commands
 

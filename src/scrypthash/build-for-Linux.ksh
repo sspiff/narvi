@@ -26,7 +26,7 @@
 
 
 
-OUTFILE=scrypt-hash.so
+OUTFILEBASE=scrypthash-linux-x86
 
 SCRYPTDIR=scrypt-1.1.6
 SCRYPTLIBROOT=${SCRYPTDIR}/lib
@@ -43,7 +43,9 @@ cp ${SCRYPTLIBROOT}/util/sysendian.h ${OBJDIR}/
 cp ${SCRYPTLIBROOT}/crypto/sha256.h ${OBJDIR}/
 cp ${SCRYPTLIBROOT}/crypto/sha256.c ${OBJDIR}/
 cp ${SCRYPTLIBROOT}/crypto/crypto_scrypt.h ${OBJDIR}/
+cp ${SCRYPTLIBROOT}/crypto/crypto_scrypt-nosse.c ${OBJDIR}/
 cp ${SCRYPTLIBROOT}/crypto/crypto_scrypt-sse.c ${OBJDIR}/
 
-cd ${OBJDIR} && gcc -shared -fPIC -O3 -DCONFIG_H_FILE=\"config.h\" -o ${OUTFILE} crypto_scrypt-sse.c sha256.c
+(cd ${OBJDIR} && gcc -m32 -shared -fPIC -O3 -DCONFIG_H_FILE=\"config.h\" -o ${OUTFILEBASE}-32.so crypto_scrypt-nosse.c sha256.c)
+(cd ${OBJDIR} && gcc -m64 -shared -fPIC -O3 -DCONFIG_H_FILE=\"config.h\" -o ${OUTFILEBASE}-64.so crypto_scrypt-sse.c sha256.c)
 

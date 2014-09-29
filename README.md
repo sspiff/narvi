@@ -5,7 +5,7 @@ _DRAFT: Not all of this is implemented_
 
 narvi is a deterministic password generator, similar in concept to [PwdHash](http://crypto.stanford.edu/PwdHash/).  The goal is to help you reduce the number of passwords that you have to remember while still providing a different password for every account.
 
-To use it, you provide narvi with an account identifier, such as "you@mail.com", and your "master" password.  narvi will produce an account-specific password based on a hash of the combination of the account identifier and your master password.  Changing the account identifier, or _salt_, while keeping the master password the same will yield a different account password.  narvi does not store the passwords; it generates them each time you need them.
+To use it, you provide narvi with an account identifier, such as `you@mail.com`, and your "master" password.  narvi will produce an account-specific password based on a hash of the combination of the account identifier and your master password.  Changing the account identifier, or _salt_, while keeping the master password the same will yield a different account password.  narvi does not store the passwords; it generates them each time you need them.
 
 ## Features
 
@@ -18,7 +18,7 @@ To use it, you provide narvi with an account identifier, such as "you@mail.com",
 
 ## Basic Usage
 
-When run with no parameters, narvi will prompt you for a salt, for which you can use any value, but which should typically be some account identifier, such as "you@yourbank.com".  If it is a salt that narvi recognizes, it will prompt you for the master password, generate the hash, and "output" the account-specific password.  On Windows and Mac, narvi will make the password available in the clipboard for eight seconds.  On Linux, narvi will output the password to stdout.
+When run with no parameters, narvi will prompt you for a salt, for which you can use any value, but which should typically be some account identifier, such as `you@yourbank.com`.  If it is a salt that narvi recognizes, it will prompt you for the master password, generate the hash, and "output" the account-specific password.  On Windows and Mac, narvi will make the password available in the clipboard for eight seconds.  On Linux, narvi will output the password to stdout.
 
 If the salt is not one that narvi recognizes, it will prompt you for the configuration for that salt:
 * The hash scheme (defaults to scrypt with N=2^18, r=8, p=1)

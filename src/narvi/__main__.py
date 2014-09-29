@@ -36,6 +36,9 @@ import pwhash
 class TemporaryClipboard(object):
 
 	def _macosx(self, text):
+		#
+		# taken from: http://stackoverflow.com/a/3555675
+		#
 		from AppKit import NSPasteboard, NSArray
 		pb = NSPasteboard.generalPasteboard()
 		pb.clearContents()
@@ -46,11 +49,14 @@ class TemporaryClipboard(object):
 		return clearit
 
 	def _mswindows(self, text):
+		#
+		# taken from: http://stackoverflow.com/a/3429034
+		#
 		import ctypes
 		strcpy = ctypes.cdll.msvcrt.strcpy
 		cbopen = ctypes.windll.user32.OpenClipboard
 		cbclose = ctypes.windll.user32.CloseClipboard
-		cbpaste = ctypes.windll.user32.SetClipboardData
+		cbset = ctypes.windll.user32.SetClipboardData
 		cbclear = ctypes.windll.user32.EmptyClipboard
 		malloc = ctypes.windll.kernel32.GlobalAlloc
 		mlock  = ctypes.windll.kernel32.GlobalLock
@@ -61,7 +67,7 @@ class TemporaryClipboard(object):
 		buf = mlock(mh)
 		strcpy(ctypes.c_char_p(buf), text.encode('utf-8'))
 		munlock(mh)
-		cbpaste(1, mh)
+		cbset(1, mh)
 		cbclose()
 		def clearit():
 			cbopen(None)
@@ -70,7 +76,12 @@ class TemporaryClipboard(object):
 		return clearit
 
 	def _console(self, text):
-		raise Exception('not implemented')
+		text = text + ' '
+		sys.stdout.write(text)
+		def clearit():
+			sys.stdout.write('\x08 \x08' * len(text))
+			sys.stdout.flush()
+		return clearit
 
 	def __init__(self, text):
 		self.text = text

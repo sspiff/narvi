@@ -47,8 +47,8 @@ def _is_sufficiently_complex(pword):
 def _base64_wordify(pwh, params, keymaterial):
 	pwchars = base64.b64encode(keymaterial, params['altchars'])
 	# ignore any final padding
-	pwlen = params['pwlen'] - 2
-	keylen = len(pwchars)
+	keylen = len(pwchars) - 2
+	pwlen = params['pwlen']
 	pos = 0
 	while pos + pwlen <= keylen:
 		password = pwchars[pos:(pos + pwlen)]
@@ -58,10 +58,33 @@ def _base64_wordify(pwh, params, keymaterial):
 	return None
 
 
+def _base32_wordify_simple(pwh, params, keymaterial):
+	pwchars = base64.b32encode(keymaterial)
+	password = pwchars[:params['pwlen']]
+	return password
+
+
+def _digits_wordify(pwh, params, keymaterial):
+	import struct
+	pwlen = params['pwlen']
+	password = ''
+	pos = 0
+	while pwlen > len(password):
+		password += str(struct.unpack_from('<L', keymaterial, pos)[0])
+		pos += 4
+	return password[:pwlen]
+
+
 provides = {
   'wordfunctions': {
     'base64': {
       'f': _base64_wordify
+    },
+    'base32simple': {
+      'f': _base32_wordify_simple
+    },
+    'digits': {
+      'f': _digits_wordify
     }
   },
   'wordschemes': {
@@ -71,6 +94,27 @@ provides = {
       'wordparams': {
         'pwlen': 16,
         'altchars': '!@'
+      }
+    },
+    'base32-10': {
+      'description': 'base32 alphabet, 10 characters long, good for security question answers with symbol restrictions',
+      'wordfunctionid': 'base32simple',
+      'wordparams': {
+        'pwlen': 10
+      }
+    },
+    'pin-4': {
+      'description': '4-digit PIN',
+      'wordfunctionid': 'digits',
+      'wordparams': {
+        'pwlen': 4
+      }
+    },
+    'pin-6': {
+      'description': '6-digit PIN',
+      'wordfunctionid': 'digits',
+      'wordparams': {
+        'pwlen': 6
       }
     }
   }

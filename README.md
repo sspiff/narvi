@@ -65,7 +65,19 @@ Using one-way hashes as service-specific passwords is not new.  See, for example
 * To list available word schemes: `narvi lswordschemes`
 * To view the license: `narvi license`
 
-## Misc Details
+## Configuration
 
-narvi stores some stuff in `~/.narvi/`.  In particular, its saved configuration is in `~/.narvi/config` as JSON.
+narvi stores its saved configuration in `~/.narvi/config` as JSON.  This file will be created the first time you tell narvi to save a salt.  In addition to holding your salt definitions, there are some global settings that you can edit:
 
+* `clipboard-time`      (integer) The number of seconds that narvi will keep the generated password on the clipboard.  Default is 8.
+* `default-hashscheme`  (string)  The default hash scheme for new salts.  Default is `scrypt-18-8-1-512`.
+* `default-wordscheme`  (string)  The default word scheme for new salts.  Default is `base64-16-!@-aA1`.
+* `store-checksum`      (boolean) If `true`, store a checksum for new salts.  Default is `false`.  See Derived Key Checksums below.
+
+## Derived Key Checksums
+
+_Storing checksums is disabled by default because the author is not sure that storing them does not compromise the master password or the security of your accounts._
+
+narvi can use a checksum to detect, in most cases, when you've mistyped your master password.  It works like this:
+
+If `store-checksum` is `true`, then when defining a new salt, narvi will prompt you twice for the master password.  If the two entries match, then narvi will derive the key material and compute a byte-wise checksum over all of the raw key material (usually 512 bytes).  narvi will store the 1-byte checksum along with the salt definition.  The next time you use the salt, narvi will re-compute the checksum and compare with what was previously stored.  If the checksums do not match, then you've mistyped your master password.

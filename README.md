@@ -1,8 +1,6 @@
 narvi
 =====
 
-_DRAFT: Not all of this is implemented_
-
 narvi is a deterministic password generator, similar in concept to [PwdHash](http://crypto.stanford.edu/PwdHash/).  The goal is to help you reduce the number of passwords that you have to remember while still providing a different password for every account.
 
 To use it, you provide narvi with an account identifier, such as `you@mail.com`, and your "master" password.  narvi will produce an account-specific password based on a hash of the combination of the account identifier and your master password.  Changing the account identifier, or _salt_, while keeping the master password the same will yield a different account password.  narvi does not store the passwords; it generates them each time you need them.
@@ -72,7 +70,7 @@ narvi stores its saved configuration in `~/.narvi/config` as JSON.  This file wi
 * `clipboard-time`      (integer) The number of seconds that narvi will keep the generated password on the clipboard.  Default is 8.
 * `default-hashscheme`  (string)  The default hash scheme for new salts.  Default is `scrypt-18-8-1-512`.
 * `default-wordscheme`  (string)  The default word scheme for new salts.  Default is `base64-16-!@-aA1`.
-* `store-checksum`      (boolean) If `true`, store a checksum for new salts.  Default is `false`.  See Derived Key Checksums below.
+* `store-checksum`      (boolean) If `true`, store a checksum for new salts.  Default is `false`.  See [Derived Key Checksums](#derived-key-checksums) below.
 
 ## Derived Key Checksums
 

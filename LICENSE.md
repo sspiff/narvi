@@ -1,9 +1,10 @@
 
+# Licenses
 
 
-narvi:
+## narvi
 
-Copyright (c) 2014, Brian Boylston
+Copyright (c) 2014, Brian Boylston  
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,15 +29,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+## scrypthash.py
 
-
-
-scrypthash.py:
-
-Copyright (c) 2014, Brian Boylston
+Copyright (c) 2014, Brian Boylston  
 All rights reserved.
 
-Copyright (c) 2013, Magnus Hallin
+Copyright (c) 2013, Magnus Hallin  
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -61,11 +59,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+## scrypt C library
 
-
-scrypt C library:
-
-Copyright 2009 Colin Percival
+Copyright 2009 Colin Percival  
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -90,9 +86,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-
-
-pyscript:
+## pyscript
 
 The MIT License (MIT)
 

@@ -10,7 +10,8 @@ To use it, you provide narvi with an account identifier, such as `you@mail.com`,
 * Uses scrypt as its hashing function, with configurable hashing parameters.
 * Arbitrary, user-defined account identification (salt).
 * Supports multiple word schemes to support various password policies.
-* Portable command line utility written in Python that runs on any system with Python (>= 2.6 and < 3).
+* Portable command line utility written in Python that runs on any system with  
+  Python (2.7 <= v < 3).
 * Distributed as a single, OS-agnostic file (zipped Python).
 * Includes fast, native scrypt libraries for Windows, Mac, and Linux, with a pure Python implementation for other systems.
 

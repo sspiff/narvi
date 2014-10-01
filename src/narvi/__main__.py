@@ -254,7 +254,12 @@ license_parser.set_defaults(func=cmd_license)
 
 
 
-args = parser.parse_args()
+# default subcommand is 'hash'
+if len(sys.argv) == 1:
+	argv = ['hash']
+else:
+	argv = None
+args = parser.parse_args(argv)
 
 pwh = pwhash.PWHash('.narvi')
 args.func(args, pwh)

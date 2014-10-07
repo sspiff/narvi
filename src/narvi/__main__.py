@@ -126,9 +126,11 @@ subparsers = parser.add_subparsers()
 
 #
 #
-def cmd_hash(args, pwh):
+def cmd_hash(args, pwh, completer):
 	if args.saltid is None:
+		completer.set_values(sorted(pwh.user_salts))
 		saltid = raw_input('Salt: ')
+		completer.clear_values()
 	else:
 		saltid = args.saltid
 	if saltid in pwh.user_salts:
@@ -147,10 +149,13 @@ def cmd_hash(args, pwh):
 		print 'INFO:', saltid, 'not found.'
 		salt = {}
 		salt['value'] = saltid
+		completer.set_values(sorted(pwh.hashschemes))
 		salt['hashschemeid'] = prompt('Hash scheme',
 			pwh.user_settings['default-hashscheme'])
+		completer.set_values(sorted(pwh.wordschemes))
 		salt['wordschemeid'] = prompt('Word scheme',
 			pwh.user_settings['default-wordscheme'])
+		completer.clear_values()
 		if prompt('Save?', 'y') in ['y', 'Y']:
 			saveit = True
 			salt['description'] = prompt('Description', '')
@@ -254,6 +259,58 @@ license_parser.set_defaults(func=cmd_license)
 
 
 
+# configure readline
+#
+class PromptCompleter(object):
+	def __init__(self):
+		self._values = []
+	def complete(self, text, state):
+		for v in self._values:
+			if v.startswith(text):
+				if state > 0:
+					state -= 1
+				else:
+					return v
+		return None
+	def set_values(self, values):
+		self._values = values
+		readline.clear_history()
+		for v in reversed(self._values):
+			readline.add_history(v)
+	def clear_values(self):
+		self._values = []
+		readline.clear_history()
+class NoCompleter(object):
+	def set_values(self, values):
+		pass
+	def clear_values(self):
+		pass
+#
+try:
+	import readline
+except:
+	completer = NoCompleter()
+else:
+	completer = PromptCompleter()
+	readline.set_completer(completer.complete)
+	#
+	if 'libedit' in readline.__doc__:
+		readline.parse_and_bind('bind ^I rl_complete')
+		readline.parse_and_bind('bind ^F em-inc-search-prev')
+		readline.parse_and_bind('bind ^R em-inc-search-next')
+		# hack for the equivalent of set_completer_delims(''):
+		import ctypes
+		ctypes.c_byte.in_dll(
+			ctypes.CDLL('libedit.dylib'),
+			'rl_basic_word_break_characters').value = 0
+	else:
+		readline.parse_and_bind('tab: complete')
+		readline.parse_and_bind('Control-f: reverse-search-history')
+		readline.parse_and_bind('Control-r: forward-search-history')
+		readline.set_completer_delims('')
+
+
+
 # default subcommand is 'hash'
 if len(sys.argv) == 1:
 	argv = ['hash']
@@ -262,7 +319,10 @@ else:
 args = parser.parse_args(argv)
 
 pwh = pwhash.PWHash('.narvi')
-args.func(args, pwh)
+if args.func == cmd_hash:
+	args.func(args, pwh, completer)
+else:
+	args.func(args, pwh)
 
 
 

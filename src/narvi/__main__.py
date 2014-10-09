@@ -29,6 +29,7 @@ import sys
 import getpass
 import time
 import argparse
+import platform
 
 import pwhash
 
@@ -287,7 +288,13 @@ class NoCompleter(object):
 		pass
 #
 try:
-	import readline
+	if platform.system().lower() == 'windows':
+		from pyreadline.rlmain import Readline
+		import pyreadline.console as console
+		readline = Readline()
+		console.install_readline(readline.readline)
+	else:
+		import readline
 except:
 	completer = NoCompleter()
 else:

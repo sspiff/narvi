@@ -24,10 +24,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-for root, dirs, files in os.walk(os.path.join(TheBuild.sandboxroot, 'prebuiltlibs')):
-	break
-for f in files:
-	if f in TheBuild.libcontents:
+pyreadlinesrcfile = 'pyreadline-2.0.zip'
+pyreadlinemoddir  = 'pyreadline-2.0/pyreadline/'
+
+zipdir = 'pyreadline/'
+
+
+objdir = os.path.join(TheBuild.objroot, 'pyreadline')
+os.mkdir(objdir)
+
+
+import zipfile
+
+zippath = os.path.join(TheBuild.srcdir, pyreadlinesrcfile)
+zip = zipfile.ZipFile(zippath, 'r')
+for i in zip.infolist():
+	if not i.filename.startswith(pyreadlinemoddir):
 		continue
-	TheBuild.libcontents[f] = os.path.join(root, f)
+	if i.filename.startswith(pyreadlinemoddir + 'test/'):
+		continue
+	objfilename = os.path.join(objdir, i.filename[len(pyreadlinemoddir):])
+	if os.sep != '/':
+		objfilename = objfilename.replace('/', '\\')
+	zipfilename = zipdir + i.filename[len(pyreadlinemoddir):]
+	f = zip.open(i)
+	if not os.path.isdir(os.path.dirname(objfilename)):
+		os.mkdir(os.path.dirname(objfilename))
+	shutil.copyfileobj(f, open(objfilename, 'wb'))
+	TheBuild.zipcontents[zipfilename] = objfilename
 

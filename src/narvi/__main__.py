@@ -62,7 +62,7 @@ class TemporaryClipboard(object):
 		malloc = ctypes.windll.kernel32.GlobalAlloc
 		mlock  = ctypes.windll.kernel32.GlobalLock
 		munlock = ctypes.windll.kernel32.GlobalUnlock
-		cbopen(None)
+		cbopen(0)
 		cbclear()
 		mh = malloc(0x2000, len(text.encode('utf-8')) + 1)
 		buf = mlock(mh)
@@ -71,7 +71,7 @@ class TemporaryClipboard(object):
 		cbset(1, mh)
 		cbclose()
 		def clearit():
-			cbopen(None)
+			cbopen(0)
 			cbclear()
 			cbclose()
 		return clearit

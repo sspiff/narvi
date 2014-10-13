@@ -305,11 +305,12 @@ else:
 		readline.parse_and_bind('bind ^I rl_complete')
 		readline.parse_and_bind('bind ^F em-inc-search-prev')
 		readline.parse_and_bind('bind ^R em-inc-search-next')
-		# hack for the equivalent of set_completer_delims(''):
+		# hack for the equivalent of set_completer_delims():
 		import ctypes
-		ctypes.c_byte.in_dll(
-			ctypes.CDLL('libedit.dylib'),
-			'rl_basic_word_break_characters').value = 0
+		readline.my_completer_delims = ctypes.create_string_buffer('')
+		brkchars = ctypes.c_char_p.in_dll(ctypes.CDLL('libedit.dylib'),
+			'rl_basic_word_break_characters')
+		brkchars.value = ctypes.addressof(readline.my_completer_delims)
 	else:
 		readline.parse_and_bind('tab: complete')
 		readline.parse_and_bind('Control-f: reverse-search-history')

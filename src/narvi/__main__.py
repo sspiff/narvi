@@ -121,8 +121,24 @@ def prompt(p, d):
 
 
 
-parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers()
+class NarviHelpFormatter(argparse.HelpFormatter):
+	def add_arguments(self, actions):
+		self._action_max_length = 0
+		r = super(NarviHelpFormatter, self).add_arguments(actions)
+		self._action_max_length += 2
+		return r
+	def _format_text(self, text):
+		return '\n\n'.join(
+			[super(NarviHelpFormatter, self)._format_text(t)
+			for t in text.split('\n\n')])
+
+parser = argparse.ArgumentParser(
+	description='narvi - A password craftsman.\n\nUse narvi to manage the passwords for your multitude of online accounts.  It works like this: you provide narvi with an account identifier, such as "you@yourbank.com", and your "master" password.  narvi will generate an account-specific password based on a hash of the combination of the account identifier and your master password.\n\nChanging the account identifier, or /salt/, while keeping your master password the same will yield a different account password.  In this way, you can provide each account with a unique password while having to remember only your one master password.\n\nnarvi does not store the passwords; it generates them each time you need them.  As long as you supply the same salt and master password, the generated password will be the same each time.',
+	epilog='If SUBCMD is omitted, "hash" is assumed.',
+	formatter_class=NarviHelpFormatter)
+subparsers = parser.add_subparsers(
+	title='subcommands',
+	metavar='SUBCMD')
 
 
 #
@@ -196,11 +212,16 @@ def cmd_hash(args, pwh, completer):
 			sys.stdout.write('\x08 \x08')
 			sys.stdout.flush()
 #
-hash_parser = subparsers.add_parser('hash')
+hash_parser = subparsers.add_parser(
+	'hash',
+	description='Prompts for a master password and generates a password using a combination of the master password and the given SALT.  If SALT is not supplied, it is prompted for.  On Windows and Mac OS X, the generated password is temporarily copied to the clipboard; on Linux, it is temporarily displayed on the terminal.\n\nIf this is the first time that SALT has been used, narvi will prompt for the new salt\'s configuration (hash and word schemes).  During the configuration interview, default answers are shown in [brackets].',
+	help='Generate a password',
+	formatter_class=NarviHelpFormatter)
 hash_parser.add_argument(
 	'saltid',
 	metavar='SALT',
-	nargs='?')
+	nargs='?',
+	help='The SALT for which to generate a password')
 hash_parser.set_defaults(func=cmd_hash)
 
 
@@ -210,7 +231,10 @@ def cmd_list(args, pwh):
 	w = maxstringlen(pwh.user_salts.keys()) + 2
 	for salt in sorted(pwh.user_salts):
 		print salt.ljust(w), pwh.user_salts[salt]['description']
-list_parser = subparsers.add_parser('list')
+list_parser = subparsers.add_parser(
+	'list',
+	description='Lists the remembered salts.',
+	help='List remembered salts')
 list_parser.set_defaults(func=cmd_list)
 
 
@@ -222,10 +246,14 @@ def cmd_forget(args, pwh):
 		pwh.save_config()
 	else:
 		print 'ERROR: Salt \'' + args.saltid + '\' not found'
-forget_parser = subparsers.add_parser('forget')
+forget_parser = subparsers.add_parser(
+	'forget',
+	description='Removes the given salt SALT from the stored configuration.',
+	help='Forget a salt')
 forget_parser.add_argument(
 	'saltid',
-	metavar='SALT')
+	metavar='SALT',
+	help='The salt to be forgotten')
 forget_parser.set_defaults(func=cmd_forget)
 
 
@@ -236,7 +264,11 @@ def cmd_lshashschemes(args, pwh):
 	for sid in sorted(pwh.hashschemes):
 		print sid.ljust(w), pwh.hashschemes[sid]['description']
 #
-lshashschemes_parser = subparsers.add_parser('lshashschemes')
+lshashschemes_parser = subparsers.add_parser(
+	'lshashschemes',
+	description='Lists the known hashing schemes.\n\nA "hash scheme" identifies a hash or key derivation function and the parameters to that function.  This key derivation function is used to generate pseudo-random bits (key material) from a combination of the salt and master password.',
+	help='List available hashing schemes',
+	formatter_class=NarviHelpFormatter)
 lshashschemes_parser.set_defaults(func=cmd_lshashschemes)
 
 
@@ -247,7 +279,11 @@ def cmd_lswordschemes(args, pwh):
 	for sid in sorted(pwh.wordschemes):
 		print sid.ljust(w), pwh.wordschemes[sid]['description']
 #
-lswordschemes_parser = subparsers.add_parser('lswordschemes')
+lswordschemes_parser = subparsers.add_parser(
+	'lswordschemes',
+	description='Lists the known word schemes.\n\nA "word scheme" identifies the method used to convert the key material output from a hash scheme into a usable password.  The word scheme defines the character set used (letters, digits, etc.), the password length, and any complexity requirements.',
+	help='List available word schemes',
+	formatter_class=NarviHelpFormatter)
 lswordschemes_parser.set_defaults(func=cmd_lswordschemes)
 
 
@@ -255,8 +291,33 @@ lswordschemes_parser.set_defaults(func=cmd_lswordschemes)
 #
 def cmd_license(args, pwh):
 	sys.stdout.write(__loader__.get_data('LICENSE.md'))
-license_parser = subparsers.add_parser('license')
+license_parser = subparsers.add_parser(
+	'license',
+	description='Outputs the license(s).',
+	help='Output the license(s)')
 license_parser.set_defaults(func=cmd_license)
+
+
+#
+#
+def cmd_help(args, pwh):
+	if args.subcmd:
+		global subparsers
+		subparsers._name_parser_map[args.subcmd].print_help()
+	else:
+		global parser
+		parser.print_help()
+help_parser = subparsers.add_parser(
+	'help',
+	description='Displays general help or, if SUBCMD is given, help for SUBCMD.',
+	help='Display help')
+help_parser.add_argument(
+	'subcmd',
+	metavar='SUBCMD',
+	help='The SUBCMD for which to display help',
+	nargs='?',
+	choices=subparsers._name_parser_map.keys())
+help_parser.set_defaults(func=cmd_help)
 
 
 

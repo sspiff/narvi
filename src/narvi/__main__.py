@@ -132,7 +132,16 @@ class NarviHelpFormatter(argparse.HelpFormatter):
 			[super(NarviHelpFormatter, self)._format_text(t)
 			for t in text.split('\n\n')])
 
-parser = argparse.ArgumentParser(
+class NarviParserError(Exception):
+	def __init__(self, msg):
+		self.errstr = msg
+
+class NarviParser(argparse.ArgumentParser):
+	def exit(self, status=0, message=None):
+		raise NarviParserError(message)
+
+
+parser = NarviParser(
 	description='narvi - A password craftsman.\n\nUse narvi to manage the passwords for your multitude of online accounts.  It works like this: you provide narvi with an account identifier, such as "you@yourbank.com", and your "master" password.  narvi will generate an account-specific password based on a hash of the combination of the account identifier and your master password.\n\nChanging the account identifier, or /salt/, while keeping your master password the same will yield a different account password.  In this way, you can provide each account with a unique password while having to remember only your one master password.\n\nnarvi does not store the passwords; it generates them each time you need them.  As long as you supply the same salt and master password, the generated password will be the same each time.',
 	epilog='If SUBCMD is omitted, "hash" is assumed.',
 	formatter_class=NarviHelpFormatter)
@@ -143,13 +152,19 @@ subparsers = parser.add_subparsers(
 
 #
 #
+def cmd_hash_salt_prompt(pwh, completer):
+	completer.set_values(sorted(pwh.user_salts))
+	saltid = raw_input('Salt: ')
+	completer.clear_values()
+	return saltid
+
 def cmd_hash(args, pwh, completer):
 	if args.saltid is None:
-		completer.set_values(sorted(pwh.user_salts))
-		saltid = raw_input('Salt: ')
-		completer.clear_values()
+		saltid = cmd_hash_salt_prompt(pwh, completer)
 	else:
 		saltid = args.saltid
+	if not saltid.strip():
+		return
 	#
 	if saltid in pwh.user_salts:
 		salt = pwh.user_salts[saltid]
@@ -190,6 +205,9 @@ def cmd_hash(args, pwh, completer):
 			sys.stdout.write('\x08 \x08')
 			sys.stdout.flush()
 #
+def cmd_hash_completions(pwh):
+	return sorted(pwh.user_salts)
+#
 hash_parser = subparsers.add_parser(
 	'hash',
 	description='Prompts for a master password and generates a password using a combination of the master password and the given SALT.  If SALT is not supplied, it is prompted for.  On Windows and Mac OS X, the generated password is temporarily copied to the clipboard; on Linux, it is temporarily displayed on the terminal.\n\nIf this is the first time that SALT has been used, narvi will prompt for the new salt\'s configuration (hash and word schemes).  During the configuration interview, default answers are shown in [brackets].',
@@ -201,6 +219,7 @@ hash_parser.add_argument(
 	nargs='?',
 	help='The SALT for which to generate a password')
 hash_parser.set_defaults(func=cmd_hash)
+hash_parser.completions = cmd_hash_completions
 
 
 #
@@ -233,6 +252,7 @@ forget_parser.add_argument(
 	metavar='SALT',
 	help='The salt to be forgotten')
 forget_parser.set_defaults(func=cmd_forget)
+forget_parser.completions = cmd_hash_completions
 
 
 #
@@ -285,6 +305,10 @@ def cmd_help(args, pwh):
 	else:
 		global parser
 		parser.print_help()
+#
+def cmd_help_completions(pwh, sp=subparsers):
+	return sp._name_parser_map.keys()
+#
 help_parser = subparsers.add_parser(
 	'help',
 	description='Displays general help or, if SUBCMD is given, help for SUBCMD.',
@@ -296,6 +320,7 @@ help_parser.add_argument(
 	nargs='?',
 	choices=subparsers._name_parser_map.keys())
 help_parser.set_defaults(func=cmd_help)
+help_parser.completions = cmd_help_completions
 
 
 
@@ -336,6 +361,7 @@ try:
 		import readline
 except:
 	completer = NoCompleter()
+	readline = None
 else:
 	completer = PromptCompleter()
 	readline.set_completer(completer.complete)
@@ -346,7 +372,7 @@ else:
 		readline.parse_and_bind('bind ^R em-inc-search-next')
 		# hack for the equivalent of set_completer_delims():
 		import ctypes
-		readline.my_completer_delims = ctypes.create_string_buffer('')
+		readline.my_completer_delims = ctypes.create_string_buffer(' ')
 		brkchars = ctypes.c_char_p.in_dll(ctypes.CDLL('libedit.dylib'),
 			'rl_basic_word_break_characters')
 		brkchars.value = ctypes.addressof(readline.my_completer_delims)
@@ -354,150 +380,87 @@ else:
 		readline.parse_and_bind('tab: complete')
 		readline.parse_and_bind('Control-f: reverse-search-history')
 		readline.parse_and_bind('Control-r: forward-search-history')
-		readline.set_completer_delims('')
+		readline.set_completer_delims(' ')
 
 
+#
+#
+def interactive(parser, prompt, pwh, completer):
+	# start with hash
+	saltid = cmd_hash_salt_prompt(pwh, completer)
+	if saltid.strip():
+		args = parser.parse_args(['hash', saltid])
+		return args.func(args, pwh, completer)
+	#
+	import shlex
+	global readline
+	#
+	icomplete_choices = []
+	def icomplete(text, state):
+		global icomplete_choices
+		subparser = parser._subparsers._actions[1]
+		if state == 0 and readline.get_begidx() == 0:
+			subcmds = subparser._name_parser_map.keys()
+			subcmds.append('quit')
+			choices = sorted(subcmds)
+		elif state == 0:
+			argv = shlex.split(readline.get_line_buffer())
+			subcmd = subparser._name_parser_map[argv[0]]
+			if hasattr(subcmd, 'completions'):
+				choices = subcmd.completions(pwh)
+		if state == 0:
+			icomplete_choices = [c for c in choices if c.startswith(text)]
+		try:
+			return icomplete_choices[state]
+		except IndexError:
+			return None
+	#
+	while True:
+		#
+		if readline:
+			oldcompleter = readline.get_completer()
+			readline.set_completer(icomplete)
+		else:
+			oldcompleter = None
+		try:
+			l = raw_input(prompt)
+		except KeyboardInterrupt:
+			sys.stdout.write('\n')
+			continue
+		finally:
+			if oldcompleter:
+				readline.set_completer(oldcompleter)
+		#
+		if l == 'quit':
+			return
+		argv = shlex.split(l)
+		if len(argv) == 0:
+			continue
+		try:
+			args = parser.parse_args(argv)
+		except NarviParserError as e:
+			if e.errstr:
+				print e.errstr
+		else:
+			try:
+				if args.func == cmd_hash:
+					args.func(args, pwh, completer)
+				else:
+					args.func(args, pwh)
+			except KeyboardInterrupt:
+				sys.stdout.write('\n')
 
-# default subcommand is 'hash'
-if len(sys.argv) == 1:
-	argv = ['hash']
-else:
-	argv = None
-args = parser.parse_args(argv)
+
 
 pwh = pwhash.PWHash('.narvi')
-if args.func == cmd_hash:
-	args.func(args, pwh, completer)
+if len(sys.argv) == 1:
+	interactive(parser, 'narvi> ', pwh, completer)
 else:
-	args.func(args, pwh)
-
-
-
-# pwhash
-#   prompt for salt, go to hash sub cmd
-#
-# pwhash hash SALT
-#   if SALT is known:
-#     prompt for MASTER
-#     run key derivation function
-#     compute checksum of key
-#     if checksum does not match:
-#       back to password prompt
-#     convert key bytes to password
-#     copy password to clipboard
-#   else SALT is unknown:
-#     prompt for DESCRIPTION
-#     prompt for KDFARGS
-#     prompt for WORDIFIER
-#     prompt for MASTER
-#     prompt for MASTER
-#     if not match: restart
-#     run key derivation function
-#     compute CHECKSUM
-#     store DESCRIPTION, SALT, KDF, CHECKSUM
-#     convert key bytes to password
-#     copy password to clipboard
-#
-# pwhash list [-l]
-#   list known SALTs [with DESCRIPTION]
-#
-# pwhash info SALT
-#   list all info on SALT
-#
-# pwhash forget SALT
-#   remove SALT from cache
-#
-# pwhash lskdfs [-l]
-#   list KDFs
-#
-# pwhash lswordifiers [-l]
-#   list wordifiers
-#
-# pwhash getglobal
-# pwhash setglobal
-#
-#
-# data storage:
-#   json-encoded
-#   {
-#     'modulepaths': [
-#     ]
-#     'globalsettings' :{
-#       'default-hashscheme': string,
-#       'default-wordscheme': string,
-#       'clipboard-time': number
-#     }
-#     'salts': {
-#        SALT1: {
-#          'description': string,
-#          'hashscheme': string,
-#          'wordscheme': string,
-#          'checksum': number
-#        },
-#        SALT2: {
-#          'description': string,
-#          'hashscheme': string,
-#          'wordscheme': string,
-#          'checksum': number
-#        }
-#      }
-#   }
-#
-#
-# KDFs:
-#
-#  scrypt-16-8-1-512  (relative strength 0)
-#  scrypt-20-8-1-512  (10)
-#
-# wordifiers:
-#
-#  base64-!@-16-aA1
-#  pin-4
-#
-#
-# modules:
-#
-#  mods/scrypt.py
-#  mods/base64.py
-#
-#  each mod has one export:
-#
-#   provides = {
-#     'hashfunctions' = {
-#        KDFNAME: {
-#          'f': function(parameters, password, salt)
-#        }
-#     },
-#     'hashschemes' = {
-#        'scrypt-16-8-1-512': {
-#          'description':  '...',
-#          'hashfunction': 'scrypt'
-#          'hashparams': {
-#            'N':     (1 << 16),
-#            'r':     8,
-#            'p':     1,
-#            'dklen': 512
-#          }
-#        }
-#     },
-#     'wordfunctions' = {
-#        NAME: {
-#          'f': function(parameters, buf)
-#        }
-#     }
-#     'wordschemes': {
-#        'base64-16-!@-aA1': {
-#          'description':  '...',
-#          'wordfunction': 'base64'
-#          'wordparams':   {
-#            'pwlen':     16
-#            'altchars': '!@'
-#          }
-#        }
-#     }
-#   }
-#
-
+	args = parser.parse_args()
+	if args.func == cmd_hash:
+		args.func(args, pwh, completer)
+	else:
+		args.func(args, pwh)
 
 
 

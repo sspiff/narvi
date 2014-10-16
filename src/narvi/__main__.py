@@ -150,18 +150,9 @@ def cmd_hash(args, pwh, completer):
 		completer.clear_values()
 	else:
 		saltid = args.saltid
+	#
 	if saltid in pwh.user_salts:
 		salt = pwh.user_salts[saltid]
-		while True:
-			master = getpass.getpass(
-				'Master password for ' + saltid + ': ')
-			password, checksum = pwh.generate_password(
-				salt, master)
-			if (salt['checksum'] is None or
-				checksum == salt['checksum']):
-				break
-			else:
-				print 'ERROR: Checksum does not match.'
 	else:
 		print 'INFO:', saltid, 'not found.'
 		salt = {}
@@ -176,33 +167,20 @@ def cmd_hash(args, pwh, completer):
 		if prompt('Save?', 'y') in ['y', 'Y']:
 			saveit = True
 			salt['description'] = prompt('Description', '')
-			while True:
-				master = getpass.getpass(
-					'Master password for ' + saltid + ': ')
-				if pwh.user_settings['store-checksum']:
-					master2 = getpass.getpass('Again: ')
-					if master == master2:
-						break
-					else:
-						print 'ERROR: Passwords do not match.'
-				else:
-					salt['checksum'] = None
-					break
-		else:
-			saveit = False
-			master = getpass.getpass(
-				'Master password for ' + saltid + ': ')
-		if saveit:
-			pwh.save_config()
-		password, checksum = pwh.generate_password(
-			salt, master)
-		if saveit:
-			if pwh.user_settings['store-checksum']:
-				salt['checksum'] = checksum
-			else:
-				salt['checksum'] = None
 			pwh.user_salts[saltid] = salt
 			pwh.save_config()
+	#
+	while True:
+		master = getpass.getpass(
+			'Master password for ' + saltid + ': ')
+		master2 = getpass.getpass('Again (blank if you\'re sure): ')
+		if not master2 or master == master2:
+			break
+		else:
+			print 'ERROR: Passwords do not match.'
+	#
+	password = pwh.generate_password(salt, master)
+	#
 	clipboardtime = pwh.user_settings['clipboard-time']
 	with TemporaryClipboard(password):
 		sys.stdout.write('.' * clipboardtime)

@@ -456,11 +456,17 @@ pwh = pwhash.PWHash('.narvi')
 if len(sys.argv) == 1:
 	interactive(parser, 'narvi> ', pwh, completer)
 else:
-	args = parser.parse_args()
-	if args.func == cmd_hash:
-		args.func(args, pwh, completer)
+	try:
+		args = parser.parse_args()
+	except NarviParserError as e:
+		if e.errstr:
+			sys.stderr.write(e.errstr)
+		sys.exit(2)
 	else:
-		args.func(args, pwh)
+		if args.func == cmd_hash:
+			args.func(args, pwh, completer)
+		else:
+			args.func(args, pwh)
 
 
 

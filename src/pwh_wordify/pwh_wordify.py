@@ -64,14 +64,21 @@ def _base32_wordify_simple(pwh, params, keymaterial):
 	return password
 
 
-def _digits_wordify(pwh, params, keymaterial):
+def _mindex_wordify(pwh, params, keymaterial):
 	import struct
+	alphabet = params['alphabet']
+	divisor = len(alphabet)
+	if divisor > 256:
+		raise ValueError()
+	limit = 256 - (256 % divisor)
 	pwlen = params['pwlen']
 	password = ''
 	pos = 0
 	while pwlen > len(password):
-		password += str(struct.unpack_from('<L', keymaterial, pos)[0])
-		pos += 4
+		b = struct.unpack_from('=B', keymaterial, pos)[0]
+		pos += 1
+		if b < limit:
+			password += alphabet[b % divisor]
 	return password[:pwlen]
 
 
@@ -83,8 +90,8 @@ provides = {
     'base32simple': {
       'f': _base32_wordify_simple
     },
-    'digits': {
-      'f': _digits_wordify
+    'mindex': {
+      'f': _mindex_wordify
     }
   },
   'wordschemes': {
@@ -105,16 +112,18 @@ provides = {
     },
     'pin-4': {
       'description': '4-digit PIN',
-      'wordfunctionid': 'digits',
+      'wordfunctionid': 'mindex',
       'wordparams': {
-        'pwlen': 4
+        'pwlen': 4,
+        'alphabet': '0123456789'
       }
     },
     'pin-6': {
       'description': '6-digit PIN',
-      'wordfunctionid': 'digits',
+      'wordfunctionid': 'mindex',
       'wordparams': {
-        'pwlen': 6
+        'pwlen': 6,
+        'alphabet': '0123456789'
       }
     }
   }

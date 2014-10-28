@@ -24,8 +24,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-pyreadlinesrcfile = 'pyreadline-2.0.zip'
-pyreadlinemoddir  = 'pyreadline-2.0/pyreadline/'
+pyreadlinesrcfile = 'pyreadline-narvi.zip'
+pyreadlinemoddir  = 'pyreadline-narvi/pyreadline/'
 
 zipdir = 'pyreadline/'
 

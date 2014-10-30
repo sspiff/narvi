@@ -28,20 +28,23 @@ import re
 import base64
 
 
-re_lcase = re.compile('[a-z]')
-re_ucase = re.compile('[A-Z]')
-re_num   = re.compile('[0-9]')
-def _is_sufficiently_complex(pword):
-	global re_lcase
-	global re_ucase
-	global re_num
-	if (
-		re_lcase.search(pword) and
-		re_ucase.search(pword) and
-		re_num.search(pword)):
+def _complexity_score(pword, tests):
+	score = 0
+	for t in tests:
+		if re.search(t['regex'], pword):
+			score += t['value']
+	return score
+
+
+def _is_sufficiently_complex(pword, params):
+	try:
+		c = params['complexity']
+	except KeyError:
 		return True
-	else:
+	if _complexity_score(pword, c['tests']) < c['minimumscore']:
 		return False
+	else:
+		return True
 
 
 def _base64_wordify(pwh, params, keymaterial):
@@ -52,7 +55,7 @@ def _base64_wordify(pwh, params, keymaterial):
 	pos = 0
 	while pos + pwlen <= keylen:
 		password = pwchars[pos:(pos + pwlen)]
-		if _is_sufficiently_complex(password):
+		if _is_sufficiently_complex(password, params):
 			return password
 		pos += 1
 	return None
@@ -100,7 +103,15 @@ provides = {
       'wordfunctionid': 'base64',
       'wordparams': {
         'pwlen': 16,
-        'altchars': '!@'
+        'altchars': '!@',
+        'complexity': {
+          'minimumscore': 3,
+          'tests': [
+            {'regex': '[a-z]', 'value': 1},
+            {'regex': '[A-Z]', 'value': 1},
+            {'regex': '[0-9]', 'value': 1}
+          ]
+        }
       }
     },
     'base32-10': {

@@ -47,62 +47,73 @@ def _is_sufficiently_complex(pword, params):
 		return True
 
 
-def _base64_wordify(pwh, params, keymaterial):
-	pwchars = base64.b64encode(keymaterial, params['altchars'])
-	# ignore any final padding
-	keylen = len(pwchars) - 2
+def _basic_encoder(pwh, params, keymaterial):
+	e = pwh.wordfunctions[params['encoder']]['f']
+	ekm = e(pwh, params, keymaterial, True)
 	pwlen = params['pwlen']
 	pos = 0
-	while pos + pwlen <= keylen:
-		password = pwchars[pos:(pos + pwlen)]
+	while pos + pwlen <= len(ekm):
+		password = ekm[pos:(pos + pwlen)]
 		if _is_sufficiently_complex(password, params):
 			return password
 		pos += 1
 	return None
 
 
-def _base32_wordify_simple(pwh, params, keymaterial):
-	pwchars = base64.b32encode(keymaterial)
-	password = pwchars[:params['pwlen']]
-	return password
+def _base64_encode(pwh, params, keymaterial, isencoder=False):
+	if not isencoder: raise ValueError
+	ekm = base64.b64encode(keymaterial, params['altchars'])
+	# ignore any final padding
+	return ekm[:-4]
 
 
-def _mindex_wordify(pwh, params, keymaterial):
+def _base32_encode(pwh, params, keymaterial, isencoder=False):
+	if not isencoder: raise ValueError
+	ekm = base64.b32encode(keymaterial)
+	# ignore any final padding
+	return ekm[:-8]
+
+
+def _mindex_encode(pwh, params, keymaterial, isencoder=False):
+	if not isencoder: raise ValueError
 	import struct
 	alphabet = params['alphabet']
 	divisor = len(alphabet)
 	if divisor > 256:
 		raise ValueError()
 	limit = 256 - (256 % divisor)
-	pwlen = params['pwlen']
-	password = ''
+	ekm = ''
 	pos = 0
-	while pwlen > len(password):
-		b = struct.unpack_from('=B', keymaterial, pos)[0]
+	for c in keymaterial:
+		b = struct.unpack('=B', c)[0]
 		pos += 1
 		if b < limit:
-			password += alphabet[b % divisor]
-	return password[:pwlen]
+			ekm += alphabet[b % divisor]
+	return ekm
 
 
 provides = {
   'wordfunctions': {
-    'base64': {
-      'f': _base64_wordify
+    'encoder': {
+      'f': _basic_encoder
     },
-    'base32simple': {
-      'f': _base32_wordify_simple
+    'base64': {
+      'f': _base64_encode
+    },
+    'base32': {
+      'f': _base32_encode
     },
     'mindex': {
-      'f': _mindex_wordify
+      'f': _mindex_encode
     }
   },
   'wordschemes': {
     'base64-16-!@-aA1': {
       'description': 'base64 alphabet (\'!\' and \'@\' as extra characters), 16 characters long, at least one each of lower case, upper case, and number',
-      'wordfunctionid': 'base64',
+      'wordfunctionid': 'encoder',
       'wordparams': {
         'pwlen': 16,
+        'encoder': 'base64',
         'altchars': '!@',
         'complexity': {
           'minimumscore': 3,
@@ -116,24 +127,27 @@ provides = {
     },
     'base32-10': {
       'description': 'base32 alphabet, 10 characters long, good for security question answers with symbol restrictions',
-      'wordfunctionid': 'base32simple',
+      'wordfunctionid': 'encoder',
       'wordparams': {
-        'pwlen': 10
+        'pwlen': 10,
+        'encoder': 'base32'
       }
     },
     'pin-4': {
       'description': '4-digit PIN',
-      'wordfunctionid': 'mindex',
+      'wordfunctionid': 'encoder',
       'wordparams': {
         'pwlen': 4,
+        'encoder': 'mindex',
         'alphabet': '0123456789'
       }
     },
     'pin-6': {
       'description': '6-digit PIN',
-      'wordfunctionid': 'mindex',
+      'wordfunctionid': 'encoder',
       'wordparams': {
         'pwlen': 6,
+        'encoder': 'mindex',
         'alphabet': '0123456789'
       }
     }

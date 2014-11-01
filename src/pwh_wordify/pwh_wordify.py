@@ -185,6 +185,15 @@ provides = {
         'alphabet': '0123456789'
       }
     },
+    'pin-5': {
+      'description': '5-digit PIN',
+      'wordfunctionid': 'encoder',
+      'wordparams': {
+        'pwlen': 5,
+        'encoder': 'mindex4',
+        'alphabet': '0123456789'
+      }
+    },
     'pin-6': {
       'description': '6-digit PIN',
       'wordfunctionid': 'encoder',

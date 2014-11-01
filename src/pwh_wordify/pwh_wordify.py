@@ -74,7 +74,7 @@ def _base32_encode(pwh, params, keymaterial, isencoder=False):
 	return ekm[:-8]
 
 
-def _mindex_encode(pwh, params, keymaterial, isencoder=False):
+def _mindex1_encode(pwh, params, keymaterial, isencoder=False):
 	if not isencoder: raise ValueError
 	import struct
 	alphabet = params['alphabet']
@@ -82,14 +82,54 @@ def _mindex_encode(pwh, params, keymaterial, isencoder=False):
 	if divisor > 256:
 		raise ValueError()
 	limit = 256 - (256 % divisor)
+	s = struct.Struct('=B')
 	ekm = ''
 	pos = 0
 	for c in keymaterial:
-		b = struct.unpack('=B', c)[0]
+		b = s.unpack(c)[0]
 		pos += 1
 		if b < limit:
 			ekm += alphabet[b % divisor]
 	return ekm
+
+
+def _mindex4_encode(pwh, params, keymaterial, isencoder=False):
+	if not isencoder: raise ValueError
+	import struct
+	alphabet = params['alphabet']
+	radix = len(alphabet)
+	if radix > 256:
+		raise ValueError
+	divisors = [radix ** x for x in range(3, 0, -1)]
+	vmax = radix ** 4
+	limit = (256 ** 4) - ((256 ** 4) % vmax)
+	s = struct.Struct('<I')
+	ekm = ''
+	pos = 0
+	while (pos + 4) < len(keymaterial):
+		v = s.unpack_from(keymaterial, pos)[0]
+		if v < limit:
+			pos += 4
+			v = v % vmax
+			for d in divisors:
+				ekm += alphabet[v // d]
+				v = v % d
+			ekm += alphabet[v]
+		else:
+			pos += 1
+	return ekm
+
+
+def _distro(abet, buf):
+	d = {}
+	for c in abet:
+		d[c] = 0
+	for c in buf:
+		d[c] += 1
+	for g in [sorted(d.keys())[x:x+5] for x in xrange(0, len(d), 5)]:
+		for c in g:
+			print c + ':', d[c], '\t',
+		print ''
 
 
 provides = {
@@ -103,8 +143,11 @@ provides = {
     'base32': {
       'f': _base32_encode
     },
-    'mindex': {
-      'f': _mindex_encode
+    'mindex1': {
+      'f': _mindex1_encode
+    },
+    'mindex4': {
+      'f': _mindex4_encode
     }
   },
   'wordschemes': {
@@ -138,7 +181,7 @@ provides = {
       'wordfunctionid': 'encoder',
       'wordparams': {
         'pwlen': 4,
-        'encoder': 'mindex',
+        'encoder': 'mindex4',
         'alphabet': '0123456789'
       }
     },
@@ -147,7 +190,7 @@ provides = {
       'wordfunctionid': 'encoder',
       'wordparams': {
         'pwlen': 6,
-        'encoder': 'mindex',
+        'encoder': 'mindex4',
         'alphabet': '0123456789'
       }
     }

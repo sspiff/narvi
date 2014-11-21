@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -24,15 +25,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-@build_step('pwhash', [], ['zipcontents'])
-def build_pwhash(build):
-	objdir = os.path.join(build.objroot, 'pwhash')
-	os.mkdir(objdir)
-
-	plugininitfile = os.path.join(objdir, 'plugin__init__.py')
-	open(plugininitfile, 'wb').close()
-
-	build.zipcontents['pwhash/__init__.py'] = os.path.join(build.srcdir, '__init__.py')
-	build.zipcontents['pwhash/plugins/__init__.py'] = plugininitfile
-
+@build_step('narviexe', ['narvizip'], [])
+def build_narviexe(build):
+	build.narviexe = os.path.join(build.objroot, 'narvi')
+	print '\tCreating', build.narviexe[len(build.sandboxroot)+1:], '...'
+	narviexe = open(build.narviexe, 'wb')
+	narviexe.write('#!/usr/bin/python\n')
+	shutil.copyfileobj(open(build.narvizipfile, 'rb'), narviexe)
+	narviexe.close()
+	os.chmod(build.narviexe, stat.S_IRWXU)
 

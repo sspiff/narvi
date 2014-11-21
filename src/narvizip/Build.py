@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -24,15 +25,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-@build_step('pwhash', [], ['zipcontents'])
-def build_pwhash(build):
-	objdir = os.path.join(build.objroot, 'pwhash')
-	os.mkdir(objdir)
-
-	plugininitfile = os.path.join(objdir, 'plugin__init__.py')
-	open(plugininitfile, 'wb').close()
-
-	build.zipcontents['pwhash/__init__.py'] = os.path.join(build.srcdir, '__init__.py')
-	build.zipcontents['pwhash/plugins/__init__.py'] = plugininitfile
-
+@build_step('narvizip', ['zipcontents'], [])
+def build_narvizip(build):
+	build.narvizipfile = os.path.join(build.objroot, 'narvizip', 'narvi.zip')
+	print '\tCreating', build.narvizipfile[len(build.sandboxroot)+1:], '...'
+	os.mkdir(os.path.dirname(build.narvizipfile))
+	narvizip = zipfile.ZipFile(build.narvizipfile, 'w', zipfile.ZIP_DEFLATED)
+	for k in sorted(build.zipcontents.keys()):
+		print '\t\t' + k
+		narvizip.write(build.zipcontents[k], k)
+	narvizip.close()
 

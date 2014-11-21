@@ -24,5 +24,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-TheBuild.zipcontents['pwhash/plugins/pwh_scrypt/__init__.py'] = os.path.join(TheBuild.srcdir, '__init__.py')
+@build_step('pwh_scrypt', [], ['zipcontents'])
+def build_pwh_scrypt(build):
+	build.zipcontents['pwhash/plugins/pwh_scrypt/__init__.py'] = os.path.join(build.srcdir, '__init__.py')
+
 

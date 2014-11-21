@@ -24,10 +24,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-for root, dirs, files in os.walk(os.path.join(TheBuild.sandboxroot, 'prebuiltlibs')):
-	break
-for f in files:
-	if f in TheBuild.libcontents:
-		continue
-	TheBuild.libcontents[f] = os.path.join(root, f)
+@build_step('prebuildlibs', [], ['libcontents'])
+def build_prebuiltlibs(build):
+
+	for root, dirs, files in os.walk(
+		os.path.join(build.sandboxroot, 'prebuiltlibs')):
+		break
+	for f in files:
+		if f in build.libcontents:
+			continue
+		build.libcontents[f] = os.path.join(root, f)
+
 

@@ -24,32 +24,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-pyreadlinesrcfile = 'pyreadline-narvi.zip'
-pyreadlinemoddir  = 'pyreadline-narvi/pyreadline/'
+@build_step('pyreadline', [], ['zipcontents'])
+def build_pyreadline(build):
+	pyreadlinesrcfile = 'pyreadline-narvi.zip'
+	pyreadlinemoddir  = 'pyreadline-narvi/pyreadline/'
+	zipdir = 'pyreadline/'
+	objdir = os.path.join(build.objroot, 'pyreadline')
+	zippath = os.path.join(build.srcdir, pyreadlinesrcfile)
 
-zipdir = 'pyreadline/'
+	import zipfile
+	os.mkdir(objdir)
+	zip = zipfile.ZipFile(zippath, 'r')
+	for i in zip.infolist():
+		if not i.filename.startswith(pyreadlinemoddir):
+			continue
+		if i.filename.startswith(pyreadlinemoddir + 'test/'):
+			continue
+		objfilename = os.path.join(objdir, i.filename[len(pyreadlinemoddir):])
+		if os.sep != '/':
+			objfilename = objfilename.replace('/', '\\')
+		zipfilename = zipdir + i.filename[len(pyreadlinemoddir):]
+		f = zip.open(i)
+		if not os.path.isdir(os.path.dirname(objfilename)):
+			os.mkdir(os.path.dirname(objfilename))
+		shutil.copyfileobj(f, open(objfilename, 'wb'))
+		build.zipcontents[zipfilename] = objfilename
 
-
-objdir = os.path.join(TheBuild.objroot, 'pyreadline')
-os.mkdir(objdir)
-
-
-import zipfile
-
-zippath = os.path.join(TheBuild.srcdir, pyreadlinesrcfile)
-zip = zipfile.ZipFile(zippath, 'r')
-for i in zip.infolist():
-	if not i.filename.startswith(pyreadlinemoddir):
-		continue
-	if i.filename.startswith(pyreadlinemoddir + 'test/'):
-		continue
-	objfilename = os.path.join(objdir, i.filename[len(pyreadlinemoddir):])
-	if os.sep != '/':
-		objfilename = objfilename.replace('/', '\\')
-	zipfilename = zipdir + i.filename[len(pyreadlinemoddir):]
-	f = zip.open(i)
-	if not os.path.isdir(os.path.dirname(objfilename)):
-		os.mkdir(os.path.dirname(objfilename))
-	shutil.copyfileobj(f, open(objfilename, 'wb'))
-	TheBuild.zipcontents[zipfilename] = objfilename
 

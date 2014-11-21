@@ -31,11 +31,44 @@ import zipfile
 import stat
 
 
-class BuildContext(object):
-	pass
+
+class DependencyGraphCycle(Exception): pass
+
+class DependencyItem: pass
+
+class DependencyGraph:
+	def __init__(self):
+		self._graph = {}
+
+	def add_node(self, name, dependson, neededby):
+		try:
+			o = self._graph[name]
+		except KeyError:
+			o = DependencyItem()
+			self._graph[name] = o
+			o.name      = name
+			o.dependson = []
+		o.dependson.extend(dependson)
+		for n in neededby:
+			self.add_node(n, [name], [])
+		return o
+
+	def visit(self, f, these=None, done={}, seen={}):
+		if these is None:
+			these = self._graph.keys()
+		for t in these:
+			if t in done:
+				continue
+			if t in seen:
+				raise DependencyGraphCycle(t)
+			seen[t] = True
+			self.visit(f, self._graph[t].dependson, done, seen)
+			f(self._graph[t])
+			done[t] = True
 
 
-TheBuild = BuildContext()
+
+TheBuild = DependencyGraph()
 TheBuild.sandboxroot = os.path.dirname(os.path.realpath(__file__))
 TheBuild.srcroot = os.path.join(TheBuild.sandboxroot, 'src')
 TheBuild.objroot = os.path.join(TheBuild.sandboxroot, 'obj')
@@ -55,6 +88,17 @@ if os.path.exists(TheBuild.objroot):
 os.mkdir(TheBuild.objroot)
 
 
+def build_step(name, dependson, neededby, build=TheBuild):
+	def decorator(f):
+		srcdir = build.srcdir
+		def builder():
+			build.srcdir = srcdir
+			f(build)
+		build.add_node(name, dependson, neededby).build = builder
+		return f
+	return decorator
+
+
 for root, dirs, files in os.walk(TheBuild.srcroot):
 	break
 for d in dirs:
@@ -66,32 +110,14 @@ for d in dirs:
 		execfile(buildscript)
 
 
-TheBuild.libzipfile = os.path.join(TheBuild.objroot, 'libzip', 'lib.zip')
-print 'Creating', TheBuild.libzipfile[len(TheBuild.sandboxroot)+1:], '...'
-os.mkdir(os.path.dirname(TheBuild.libzipfile))
-libzip = zipfile.ZipFile(TheBuild.libzipfile, 'w', zipfile.ZIP_DEFLATED)
-for k in sorted(TheBuild.libcontents.keys()):
-	print '\t' + k
-	libzip.write(TheBuild.libcontents[k], k)
-libzip.close()
-TheBuild.zipcontents['pwhash/lib.zip'] = TheBuild.libzipfile
+def build_one(node):
+	try:
+		b = node.build
+	except AttributeError:
+		pass
+	else:
+		print 'Building', node.name
+		b()
+TheBuild.visit(build_one)
 
-
-TheBuild.narvizipfile = os.path.join(TheBuild.objroot, 'narvizip', 'narvi.zip')
-print 'Creating', TheBuild.narvizipfile[len(TheBuild.sandboxroot)+1:], '...'
-os.mkdir(os.path.dirname(TheBuild.narvizipfile))
-narvizip = zipfile.ZipFile(TheBuild.narvizipfile, 'w', zipfile.ZIP_DEFLATED)
-for k in sorted(TheBuild.zipcontents.keys()):
-	print '\t' + k
-	narvizip.write(TheBuild.zipcontents[k], k)
-narvizip.close()
-
-
-TheBuild.narviexe = os.path.join(TheBuild.objroot, 'narvi')
-print 'Creating', TheBuild.narviexe[len(TheBuild.sandboxroot)+1:], '...'
-narviexe = open(TheBuild.narviexe, 'wb')
-narviexe.write('#!/usr/bin/python\n')
-shutil.copyfileobj(open(TheBuild.narvizipfile, 'rb'), narviexe)
-narviexe.close()
-os.chmod(TheBuild.narviexe, stat.S_IRWXU)
 

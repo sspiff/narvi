@@ -24,5 +24,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-TheBuild.zipcontents['pwhash/plugins/pwh_wordify.py'] = os.path.join(TheBuild.srcdir, 'pwh_wordify.py')
+@build_step('pwh_wordify', [], ['zipcontents'])
+def build_pwh_wordify(build):
+	build.zipcontents['pwhash/plugins/pwh_wordify.py'] = os.path.join(build.srcdir, 'pwh_wordify.py')
+
 

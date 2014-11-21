@@ -24,6 +24,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-TheBuild.zipcontents['__main__.py'] = os.path.join(TheBuild.srcdir, '__main__.py')
-TheBuild.zipcontents['LICENSE.md'] = os.path.join(TheBuild.sandboxroot, 'LICENSE.md')
+@build_step('narvi', [], ['zipcontents'])
+def build_narvi(build):
+	build.zipcontents['__main__.py'] = os.path.join(build.srcdir, '__main__.py')
+	build.zipcontents['LICENSE.md'] = os.path.join(build.sandboxroot, 'LICENSE.md')
+
 

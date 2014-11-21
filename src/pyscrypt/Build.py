@@ -24,26 +24,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-pyscryptsrcfile = 'pyscrypt-1.5.0.tar.gz'
-pyscryptmoddir  = 'pyscrypt-1.5.0/pyscrypt/'
+@build_step('pyscrypt', [], ['zipcontents'])
+def build_pyscrypt(build):
+	pyscryptsrcfile = 'pyscrypt-1.5.0.tar.gz'
+	pyscryptmoddir  = 'pyscrypt-1.5.0/pyscrypt/'
 
-zipdir = 'pwhash/plugins/pwh_scrypt/pyscrypt/'
+	zipdir = 'pwhash/plugins/pwh_scrypt/pyscrypt/'
 
+	objdir = os.path.join(build.objroot, 'pyscrypt')
+	os.mkdir(objdir)
 
-objdir = os.path.join(TheBuild.objroot, 'pyscrypt')
-os.mkdir(objdir)
+	import tarfile
 
+	tgzfile = os.path.join(build.srcdir, pyscryptsrcfile)
+	tar = tarfile.open(tgzfile, 'r')
+	for m in tar.getmembers():
+		if not m.name.startswith(pyscryptmoddir):
+			continue
+		objfilename = os.path.join(objdir, m.name[len(pyscryptmoddir):])
+		zipfilename = zipdir + m.name[len(pyscryptmoddir):]
+		f = tar.extractfile(m)
+		shutil.copyfileobj(f, open(objfilename, 'wb'))
+		build.zipcontents[zipfilename] = objfilename
 
-import tarfile
-
-tgzfile = os.path.join(TheBuild.srcdir, pyscryptsrcfile)
-tar = tarfile.open(tgzfile, 'r')
-for m in tar.getmembers():
-	if not m.name.startswith(pyscryptmoddir):
-		continue
-	objfilename = os.path.join(objdir, m.name[len(pyscryptmoddir):])
-	zipfilename = zipdir + m.name[len(pyscryptmoddir):]
-	f = tar.extractfile(m)
-	shutil.copyfileobj(f, open(objfilename, 'wb'))
-	TheBuild.zipcontents[zipfilename] = objfilename
 

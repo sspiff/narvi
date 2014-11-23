@@ -1,0 +1,10 @@
+{
+"CFBundleDevelopmentRegion": "English",
+"CFBundleInfoDictionaryVersion": "6.0",
+"CFBundleName": "narvi",
+"CFBundlePackageType": "APPL",
+"CFBundleSignature": "????",
+"CFBundleIdentifier": "narvi",
+"CFBundleExecutable": "narvi-term",
+"CFBundleIconFile": "narvi.icns"
+}

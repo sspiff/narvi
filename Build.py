@@ -29,6 +29,7 @@ import os
 import shutil
 import zipfile
 import stat
+import sys
 
 
 
@@ -72,11 +73,13 @@ TheBuild = DependencyGraph()
 TheBuild.sandboxroot = os.path.dirname(os.path.realpath(__file__))
 TheBuild.srcroot = os.path.join(TheBuild.sandboxroot, 'src')
 TheBuild.objroot = os.path.join(TheBuild.sandboxroot, 'obj')
+TheBuild.version = sys.argv[1]
 TheBuild.libcontents = {}
 TheBuild.zipcontents = {}
 
 
 print ''
+print 'Version     :', TheBuild.version
 print 'Sandbox root:', TheBuild.sandboxroot
 print 'Source root :', TheBuild.srcroot
 print 'Obj root    :', TheBuild.objroot

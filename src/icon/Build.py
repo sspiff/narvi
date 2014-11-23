@@ -10,9 +10,12 @@ def export_icon_png(pngname, width, inkscapebin=inkscapebin, iconsvgpath=iconsvg
 	cmd = [inkscapebin, iconsvgpath, '--export-area-page']
 	cmd.append('--export-png='+pngname)
 	cmd.extend(['-w'+str(width), '-h'+str(height)])
-	rc = subprocess.call(cmd)
-	if rc != 0:
-		raise RuntimeError('inkscape export failed')
+	try:
+		subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+	except subprocess.CalledProcessError as e:
+		import sys
+		sys.stderr.write(e.output)
+		raise e
 
 TheBuild.export_icon_png = export_icon_png
 

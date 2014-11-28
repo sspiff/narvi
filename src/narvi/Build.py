@@ -29,4 +29,12 @@ def build_narvi(build):
 	build.zipcontents['__main__.py'] = os.path.join(build.srcdir, '__main__.py')
 	build.zipcontents['LICENSE.md'] = os.path.join(build.sandboxroot, 'LICENSE.md')
 
+@build_step('narviversion.py', [], ['zipcontents'])
+def build_narviversionpy(build):
+	versionpy = os.path.join(build.objroot, 'narviversion.py')
+	f = open(versionpy, 'wb')
+	f.write('version = \'' + build.version + '\'\n')
+	f.close()
+	build.zipcontents['narviversion.py'] = versionpy
+
 

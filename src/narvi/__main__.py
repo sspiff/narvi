@@ -31,6 +31,7 @@ import time
 import argparse
 import platform
 
+import narviversion
 import pwhash
 
 
@@ -309,6 +310,17 @@ license_parser.set_defaults(func=cmd_license)
 
 #
 #
+def cmd_version(args, pwh):
+	print narviversion.version
+version_parser = subparsers.add_parser(
+	'version',
+	description='Displays the version number.',
+	help='Display the version')
+version_parser.set_defaults(func=cmd_version)
+
+
+#
+#
 def cmd_help(args, pwh):
 	if args.subcmd:
 		global subparsers
@@ -397,6 +409,7 @@ else:
 #
 #
 def interactive(parser, prompt, pwh, completer):
+	print 'narvi -- A Password Craftsman, v' + narviversion.version
 	# start with hash
 	saltid = cmd_hash_salt_prompt(pwh, completer)
 	if saltid.strip():

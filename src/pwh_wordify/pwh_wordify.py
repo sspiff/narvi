@@ -132,6 +132,8 @@ def _distro(abet, buf):
 		print ''
 
 
+# amnb allows: +_%!$&*-
+# yun reports that some sites require
 provides = {
   'wordfunctions': {
     'encoder': {
@@ -151,6 +153,41 @@ provides = {
     }
   },
   'wordschemes': {
+    'alphanum-12-aA1': {
+      'description': 'Upper, lower, digits; 62-character alphabet; 12 characters long; at least one each of lower, upper, and digit',
+      'wordfunctionid': 'encoder',
+      'wordparams': {
+        'pwlen': 12,
+        'encoder': 'mindex4',
+        'alphabet': 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+        'complexity': {
+          'minimumscore': 3,
+          'tests': [
+            {'regex': '[a-z]', 'value': 1},
+            {'regex': '[A-Z]', 'value': 1},
+            {'regex': '[0-9]', 'value': 1}
+          ]
+        }
+      }
+    },
+    'symbols-12-aA1$': {
+      'description': 'Upper, lower, digits, symbols (shifted digits); 72-character alphabet; 12 characters long; at least one each of lower, upper, digit, symbol',
+      'wordfunctionid': 'encoder',
+      'wordparams': {
+        'pwlen': 12,
+        'encoder': 'mindex4',
+        'alphabet': 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()',
+        'complexity': {
+          'minimumscore': 4,
+          'tests': [
+            {'regex': '[a-z]', 'value': 1},
+            {'regex': '[A-Z]', 'value': 1},
+            {'regex': '[0-9]', 'value': 1},
+            {'regex': '[!@#$%^&*()]', 'value': 1}
+          ]
+        }
+      }
+    },
     'base64-16-!@-aA1': {
       'description': 'base64 alphabet (\'!\' and \'@\' as extra characters), 16 characters long, at least one each of lower case, upper case, and number',
       'wordfunctionid': 'encoder',

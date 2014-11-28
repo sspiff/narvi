@@ -112,6 +112,12 @@ def maxstringlen(l):
 	return m
 
 
+def wrapped(s):
+	import textwrap
+	return textwrap.fill(s, 78, initial_indent='   ',
+		subsequent_indent='   ')
+
+
 def prompt(p, d):
 	r = raw_input(p + ' [' + d + ']: ')
 	if r:
@@ -168,6 +174,8 @@ def cmd_hash(args, pwh, completer):
 	#
 	if saltid in pwh.user_salts:
 		salt = pwh.user_salts[saltid]
+		if salt['description']:
+			print wrapped(salt['description'])
 	else:
 		print 'INFO:', saltid, 'not found.'
 		salt = {}
@@ -225,9 +233,10 @@ hash_parser.completions = cmd_hash_completions
 #
 #
 def cmd_list(args, pwh):
-	w = maxstringlen(pwh.user_salts.keys()) + 2
 	for salt in sorted(pwh.user_salts):
-		print salt.ljust(w), pwh.user_salts[salt]['description']
+		print salt
+		if pwh.user_salts[salt]['description']:
+			print wrapped(pwh.user_salts[salt]['description'])
 list_parser = subparsers.add_parser(
 	'list',
 	description='Lists the remembered salts.',
@@ -258,9 +267,10 @@ forget_parser.completions = cmd_hash_completions
 #
 #
 def cmd_lshashschemes(args, pwh):
-	w = maxstringlen(pwh.hashschemes.keys()) + 2
 	for sid in sorted(pwh.hashschemes):
-		print sid.ljust(w), pwh.hashschemes[sid]['description']
+		print sid
+		if pwh.hashschemes[sid]['description']:
+			print wrapped(pwh.hashschemes[sid]['description'])
 #
 lshashschemes_parser = subparsers.add_parser(
 	'lshashschemes',
@@ -273,9 +283,10 @@ lshashschemes_parser.set_defaults(func=cmd_lshashschemes)
 #
 #
 def cmd_lswordschemes(args, pwh):
-	w = maxstringlen(pwh.wordschemes.keys()) + 2
 	for sid in sorted(pwh.wordschemes):
-		print sid.ljust(w), pwh.wordschemes[sid]['description']
+		print sid
+		if pwh.wordschemes[sid]['description']:
+			print wrapped(pwh.wordschemes[sid]['description'])
 #
 lswordschemes_parser = subparsers.add_parser(
 	'lswordschemes',

@@ -106,4 +106,25 @@ def build_macappbundle(build):
 	os.rename(build.macappbundle['bundleroot'], bundle)
 	build.macappbundle = bundle
 
+@build_step('mac-appbundle-dmg', ['mac-appbundle'], [])
+def build_macappbundledmg(build):
+	dmgroot = os.path.join(build.objroot, 'mac-dmg')
+	os.mkdir(dmgroot)
+	dmgapp = os.path.join(dmgroot, 'narvi.app')
+	shutil.copytree(build.macappbundle, dmgapp)
+	appdirlink = os.path.join(dmgroot, 'Applications')
+	os.symlink('/Applications', appdirlink)
+	dmgfilename = os.path.join(build.objroot, 'narvi-'+build.version+'.dmg')
+	#
+	cmd = ['hdiutil', 'create']
+	cmd.extend(['-srcfolder', dmgroot])
+	cmd.extend([dmgfilename])
+	cmd.extend(['-volname', 'narvi-' + build.version])
+	try:
+		subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+	except subprocess.CalledProcessError as e:
+		import sys
+		sys.stderr.write(e.output)
+		raise e
+
 

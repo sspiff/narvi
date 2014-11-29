@@ -49,12 +49,17 @@ class PWHash(object):
 		self.lib_path = os.path.join(self.config_dir, 'lib')
 		self.libchecked = False
 		#
+		self.hashschemes = {}
+		self.wordschemes = {}
+		self.plugin_hashschemes = {}
+		self.plugin_wordschemes = {}
+		self.user_hashschemes = {}
+		self.user_wordschemes = {}
+		#
 		self.user_salts = {}
 		self.user_settings = {}
 		self.load_config()
 		#
-		self.hashschemes = {}
-		self.wordschemes = {}
 		self.hashfunctions = {}
 		self.wordfunctions = {}
 		self.load_plugins()
@@ -74,7 +79,7 @@ class PWHash(object):
 
 	def _read_config(self):
 		try:
-			f = open(self.config_file, 'rb')
+			f = open(self.config_file, 'r')
 		except IOError as e:
 			if e.errno == errno.ENOENT:
 				return self._default_user_config()
@@ -82,18 +87,30 @@ class PWHash(object):
 				raise e
 		return json.loads(f.read())
 
-	def _write_config(self, config):
+	def _write_config(self, config, cfgfile=None):
+		if cfgfile == None:
+			cfgfile = self.config_file
 		try:
-			f = open(self.config_file, 'wb')
+			f = open(cfgfile, 'w')
 		except IOError as e:
-			if e.errno == errno.ENOENT:
+			if (e.errno == errno.ENOENT and
+				cfgfile == self.config_file):
 				os.mkdir(self.config_dir)
-				f = open(self.config_file, 'wb')
+				f = open(cfgfile, 'w')
 			else:
 				raise e
 		f.write(json.dumps(config,
 			sort_keys=True, indent=4, separators=(',', ': ')))
 		f.write('\n')
+		f.close()
+
+	def merge_config(self):
+		self.hashschemes = {}
+		self.wordschemes = {}
+		self.hashschemes.update(self.plugin_hashschemes)
+		self.wordschemes.update(self.plugin_wordschemes)
+		self.hashschemes.update(self.user_hashschemes)
+		self.wordschemes.update(self.user_wordschemes)
 
 	def load_config(self):
 		config = self._read_config()
@@ -101,15 +118,16 @@ class PWHash(object):
 		self.user_settings = config['settings']
 		self.user_hashschemes = config['hashschemes']
 		self.user_wordschemes = config['wordschemes']
+		self.merge_config()
 
-	def save_config(self):
+	def save_config(self, cfgfile=None):
 		config = {
 			'settings': self.user_settings,
 			'salts': self.user_salts,
 			'hashschemes': self.user_hashschemes,
 			'wordschemes': self.user_wordschemes
 			}
-		self._write_config(config)
+		self._write_config(config, cfgfile)
 
 	def _modlist_from_dir(self, path):
 		for dirpath, dirnames, filenames in os.walk(path):
@@ -148,19 +166,19 @@ class PWHash(object):
 			raise PWHashError(
 				'Unable to load plugin \'' + pname + '\'.')
 		if 'hashschemes' in p:
-			self.hashschemes.update(p['hashschemes'])
+			self.plugin_hashschemes.update(p['hashschemes'])
 		if 'hashfunctions' in p:
 			self.hashfunctions.update(p['hashfunctions'])
 		if 'wordschemes' in p:
-			self.wordschemes.update(p['wordschemes'])
+			self.plugin_wordschemes.update(p['wordschemes'])
 		if 'wordfunctions' in p:
 			self.wordfunctions.update(p['wordfunctions'])
 
 	def load_plugins(self):
-		self.hashschemes   = {}
-		self.hashfunctions = {}
-		self.wordschemes   = {}
-		self.wordfunctions = {}
+		self.plugin_hashschemes = {}
+		self.hashfunctions      = {}
+		self.plugin_wordschemes = {}
+		self.wordfunctions      = {}
 		#
 		modpath = plugins.__path__[0]
 		try:
@@ -178,8 +196,7 @@ class PWHash(object):
 		for p in modlist:
 			self.load_plugin(p)
 		#
-		self.hashschemes.update(self.user_hashschemes)
-		self.wordschemes.update(self.user_wordschemes)
+		self.merge_config()
 
 	def _load_libzip(self):
 		modpath = __path__[0]

@@ -30,6 +30,11 @@ import getpass
 import time
 import argparse
 import platform
+import os
+import subprocess
+import tempfile
+import json
+import shutil
 
 import narviversion
 import pwhash
@@ -306,6 +311,45 @@ license_parser = subparsers.add_parser(
 	description='Outputs the license(s).',
 	help='Output the license(s)')
 license_parser.set_defaults(func=cmd_license)
+
+
+#
+#
+def cmd_editconfig(args, pwh):
+	# write current config to a temp file
+	fd = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+	tmpfile = fd.name
+	fd.close()
+	pwh.save_config(tmpfile)
+	try:
+		# run editor
+		if platform.system().lower() == 'windows':
+			cmd = ['notepad.exe', tmpfile]
+		else:
+			try:
+				editor = os.environ['EDITOR']
+			except KeyError:
+				editor = 'vi'
+			cmd = [editor, tmpfile]
+		subprocess.call(cmd)
+		# sanity check config format
+		try:
+			json.load(open(tmpfile, 'r'))
+		except ValueError as e:
+			print str(e)
+			print 'ERROR: Failed to parse JSON; changes discarded.'
+		else:
+			# confirm new config
+			if prompt('Save changes?', 'y') in ['y', 'Y']:
+				shutil.copy(tmpfile, pwh.config_file)
+				pwh.load_config()
+	finally:
+		os.remove(tmpfile)
+editconfig_parser = subparsers.add_parser(
+	'editconfig',
+	description='Runs a text editor on the configuration file.',
+	help='Edit configuration')
+editconfig_parser.set_defaults(func=cmd_editconfig)
 
 
 #

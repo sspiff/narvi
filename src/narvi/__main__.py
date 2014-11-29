@@ -334,7 +334,10 @@ def cmd_editconfig(args, pwh):
 		subprocess.call(cmd)
 		# sanity check config format
 		try:
-			json.load(open(tmpfile, 'r'))
+			fd = open(tmpfile, 'r')
+			j = fd.read()
+			fd.close()
+			json.loads(j)
 		except ValueError as e:
 			print str(e)
 			print 'ERROR: Failed to parse JSON; changes discarded.'

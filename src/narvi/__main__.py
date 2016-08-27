@@ -453,6 +453,20 @@ else:
 		readline.parse_and_bind('Control-r: forward-search-history')
 		readline.set_completer_delims(' ')
 
+def readline_history_save(r):
+	h = []
+	if r:
+		l = r.get_current_history_length()
+		while l > 0:
+			h.append(r.get_history_item(l))
+			l -= 1
+	return h
+
+def readline_history_restore(r, h):
+	if r:
+		r.clear_history()
+		for i in reversed(h):
+			r.add_history(i)
 
 #
 #
@@ -514,6 +528,7 @@ def interactive(parser, prompt, pwh, completer):
 			if e.errstr:
 				print e.errstr
 		else:
+			cmdhistory = readline_history_save(readline)
 			try:
 				if args.func == cmd_hash:
 					args.func(args, pwh, completer)
@@ -521,6 +536,7 @@ def interactive(parser, prompt, pwh, completer):
 					args.func(args, pwh)
 			except KeyboardInterrupt:
 				sys.stdout.write('\n')
+			readline_history_restore(readline, cmdhistory)
 
 
 

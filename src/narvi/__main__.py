@@ -443,7 +443,8 @@ else:
 		# hack for the equivalent of set_completer_delims():
 		import ctypes
 		readline.my_completer_delims = ctypes.create_string_buffer(' ')
-		brkchars = ctypes.c_char_p.in_dll(ctypes.CDLL('libedit.dylib'),
+		brkchars = ctypes.c_char_p.in_dll(
+			ctypes.CDLL('/usr/lib/libedit.dylib'),
 			'rl_basic_word_break_characters')
 		brkchars.value = ctypes.addressof(readline.my_completer_delims)
 	else:

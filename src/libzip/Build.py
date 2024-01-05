@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -28,11 +28,11 @@
 @build_step('libzip', ['libcontents'], ['zipcontents'])
 def build_libzip(build):
 	libzipfile = os.path.join(build.objroot, 'libzip', 'lib.zip')
-	print '\tCreating', libzipfile[len(build.sandboxroot)+1:], '...'
+	print('\tCreating', libzipfile[len(build.sandboxroot)+1:], '...')
 	os.mkdir(os.path.dirname(libzipfile))
 	libzip = zipfile.ZipFile(libzipfile, 'w', zipfile.ZIP_DEFLATED)
 	for k in sorted(build.libcontents.keys()):
-		print '\t\t' + k
+		print('\t\t' + k)
 		libzip.write(build.libcontents[k], k)
 	libzip.close()
 	build.zipcontents['pwhash/lib.zip'] = libzipfile

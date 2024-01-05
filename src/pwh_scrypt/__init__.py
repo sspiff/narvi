@@ -31,8 +31,8 @@ def _scrypt_hash(pwh, params, pw, salt):
 		from . import scrypthash
 		scrypthash.init(pwh.lib_path)
 	except Exception as e:
-		print e
-		print "INFO: using pure Python scrypt"
+		print(e)
+		print("INFO: using pure Python scrypt")
 		from . import pyscrypt
 		hashbytes = pyscrypt.hash(
 			password = pw,

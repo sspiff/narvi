@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -28,11 +28,11 @@
 @build_step('narvizip', ['zipcontents'], [])
 def build_narvizip(build):
 	build.narvizipfile = os.path.join(build.objroot, 'narvizip', 'narvi.zip')
-	print '\tCreating', build.narvizipfile[len(build.sandboxroot)+1:], '...'
+	print('\tCreating', build.narvizipfile[len(build.sandboxroot)+1:], '...')
 	os.mkdir(os.path.dirname(build.narvizipfile))
 	narvizip = zipfile.ZipFile(build.narvizipfile, 'w', zipfile.ZIP_DEFLATED)
 	for k in sorted(build.zipcontents.keys()):
-		print '\t\t' + k
+		print('\t\t' + k)
 		narvizip.write(build.zipcontents[k], k)
 	narvizip.close()
 

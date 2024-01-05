@@ -112,8 +112,8 @@ class error(Exception):
 
 
 def _ensure_bytes(data):
-    if IS_PY2 and isinstance(data, unicode):
-	return data.encode('utf-8')
+    if IS_PY2 and isinstance(data, str):
+        return data.encode('utf-8')
 
     if not IS_PY2 and isinstance(data, str):
         return bytes(data, 'utf-8')

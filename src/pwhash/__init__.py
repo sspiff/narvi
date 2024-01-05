@@ -32,7 +32,7 @@ import zipimport
 import zipfile
 import hashlib
 import shutil
-import StringIO
+import io
 
 from . import plugins
 
@@ -162,7 +162,7 @@ class PWHash(object):
 			plugin = getattr(plugmod, pname)
 			p = plugin.provides
 		except Exception as e:
-			print e
+			print(e)
 			raise PWHashError(
 				'Unable to load plugin \'' + pname + '\'.')
 		if 'hashschemes' in p:
@@ -224,10 +224,10 @@ class PWHash(object):
 		if not os.path.isfile(self.config_file):
 			return
 		#
-		print 'INFO: installing latest libs'
+		print('INFO: installing latest libs')
 		shutil.rmtree(self.lib_path, True)
 		os.mkdir(self.lib_path)
-		z = zipfile.ZipFile(StringIO.StringIO(zipdata))
+		z = zipfile.ZipFile(io.BytesIO(zipdata))
 		z.extractall(self.lib_path)
 		self.user_settings['lib-version'] = md5
 		self.save_config()

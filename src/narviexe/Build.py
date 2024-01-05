@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -28,9 +28,9 @@
 @build_step('narviexe', ['narvizip'], [])
 def build_narviexe(build):
 	build.narviexe = os.path.join(build.objroot, 'narvi')
-	print '\tCreating', build.narviexe[len(build.sandboxroot)+1:], '...'
+	print('\tCreating', build.narviexe[len(build.sandboxroot)+1:], '...')
 	narviexe = open(build.narviexe, 'wb')
-	narviexe.write('#!/usr/bin/python\n')
+	narviexe.write('#!/usr/bin/python3\n'.encode())
 	shutil.copyfileobj(open(build.narvizipfile, 'rb'), narviexe)
 	narviexe.close()
 	os.chmod(build.narviexe, stat.S_IRWXU)

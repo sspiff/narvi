@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -56,7 +56,7 @@ class DependencyGraph:
 
 	def visit(self, f, these=None, done={}, seen={}):
 		if these is None:
-			these = self._graph.keys()
+			these = list(self._graph.keys())
 		for t in these:
 			if t in done:
 				continue
@@ -78,15 +78,15 @@ TheBuild.libcontents = {}
 TheBuild.zipcontents = {}
 
 
-print ''
-print 'Version     :', TheBuild.version
-print 'Sandbox root:', TheBuild.sandboxroot
-print 'Source root :', TheBuild.srcroot
-print 'Obj root    :', TheBuild.objroot
-print ''
+print('')
+print('Version     :', TheBuild.version)
+print('Sandbox root:', TheBuild.sandboxroot)
+print('Source root :', TheBuild.srcroot)
+print('Obj root    :', TheBuild.objroot)
+print('')
 
 if os.path.exists(TheBuild.objroot):
-	print 'Removing previous build artifacts...'
+	print('Removing previous build artifacts...')
 	shutil.rmtree(TheBuild.objroot)
 os.mkdir(TheBuild.objroot)
 
@@ -109,8 +109,8 @@ for d in dirs:
 	buildscript = os.path.join(srcdir, 'Build.py')
 	if os.path.exists(buildscript):
 		TheBuild.srcdir = srcdir
-		print 'Processing', buildscript[len(TheBuild.sandboxroot)+1:]
-		execfile(buildscript)
+		print('Processing', buildscript[len(TheBuild.sandboxroot)+1:])
+		exec(compile(open(buildscript, "rb").read(), buildscript, 'exec'))
 
 
 def build_one(node):
@@ -119,7 +119,7 @@ def build_one(node):
 	except AttributeError:
 		pass
 	else:
-		print 'Building', node.name
+		print('Building', node.name)
 		b()
 TheBuild.visit(build_one)
 

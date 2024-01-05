@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2014, Brian Boylston
 # All rights reserved.
@@ -43,16 +43,10 @@ import pwhash
 class TemporaryClipboard(object):
 
 	def _macosx(self, text):
-		#
-		# taken from: http://stackoverflow.com/a/3555675
-		#
-		from AppKit import NSPasteboard, NSArray
-		pb = NSPasteboard.generalPasteboard()
-		pb.clearContents()
-		a = NSArray.arrayWithObject_(text)
-		pb.writeObjects_(a)
+		pbcopy = ['/usr/bin/pbcopy']
+		subprocess.run(pbcopy, check=True, input=text.encode())
 		def clearit():
-			pb.clearContents()
+			subprocess.run(pbcopy, input=''.encode())
 		return clearit
 
 	def _mswindows(self, text):
@@ -125,7 +119,7 @@ def wrapped(s):
 
 
 def prompt(p, d):
-	r = raw_input(p + ' [' + d + ']: ')
+	r = input(p + ' [' + d + ']: ')
 	if r:
 		return r
 	else:
@@ -166,7 +160,7 @@ subparsers = parser.add_subparsers(
 #
 def cmd_hash_salt_prompt(pwh, completer):
 	completer.set_values(sorted(pwh.user_salts))
-	saltid = raw_input('Salt: ')
+	saltid = input('Salt: ')
 	completer.clear_values()
 	return saltid
 
@@ -181,9 +175,9 @@ def cmd_hash(args, pwh, completer):
 	if saltid in pwh.user_salts:
 		salt = pwh.user_salts[saltid]
 		if salt['description']:
-			print wrapped(salt['description'])
+			print(wrapped(salt['description']))
 	else:
-		print 'INFO:', saltid, 'not found.'
+		print('INFO:', saltid, 'not found.')
 		salt = {}
 		salt['value'] = saltid
 		completer.set_values(sorted(pwh.hashschemes))
@@ -206,7 +200,7 @@ def cmd_hash(args, pwh, completer):
 		if not master2 or master == master2:
 			break
 		else:
-			print 'ERROR: Passwords do not match.'
+			print('ERROR: Passwords do not match.')
 	#
 	password = pwh.generate_password(salt, master)
 	#
@@ -240,9 +234,9 @@ hash_parser.completions = cmd_hash_completions
 #
 def cmd_list(args, pwh):
 	for salt in sorted(pwh.user_salts):
-		print salt
+		print(salt)
 		if pwh.user_salts[salt]['description']:
-			print wrapped(pwh.user_salts[salt]['description'])
+			print(wrapped(pwh.user_salts[salt]['description']))
 list_parser = subparsers.add_parser(
 	'list',
 	description='Lists the remembered salts.',
@@ -257,7 +251,7 @@ def cmd_forget(args, pwh):
 		del pwh.user_salts[args.saltid]
 		pwh.save_config()
 	else:
-		print 'ERROR: Salt \'' + args.saltid + '\' not found'
+		print('ERROR: Salt \'' + args.saltid + '\' not found')
 forget_parser = subparsers.add_parser(
 	'forget',
 	description='Removes the given salt SALT from the stored configuration.',
@@ -274,9 +268,9 @@ forget_parser.completions = cmd_hash_completions
 #
 def cmd_lshashschemes(args, pwh):
 	for sid in sorted(pwh.hashschemes):
-		print sid
+		print(sid)
 		if pwh.hashschemes[sid]['description']:
-			print wrapped(pwh.hashschemes[sid]['description'])
+			print(wrapped(pwh.hashschemes[sid]['description']))
 #
 lshashschemes_parser = subparsers.add_parser(
 	'lshashschemes',
@@ -290,9 +284,9 @@ lshashschemes_parser.set_defaults(func=cmd_lshashschemes)
 #
 def cmd_lswordschemes(args, pwh):
 	for sid in sorted(pwh.wordschemes):
-		print sid
+		print(sid)
 		if pwh.wordschemes[sid]['description']:
-			print wrapped(pwh.wordschemes[sid]['description'])
+			print(wrapped(pwh.wordschemes[sid]['description']))
 #
 lswordschemes_parser = subparsers.add_parser(
 	'lswordschemes',
@@ -339,8 +333,8 @@ def cmd_editconfig(args, pwh):
 			fd.close()
 			json.loads(j)
 		except ValueError as e:
-			print str(e)
-			print 'ERROR: Failed to parse JSON; changes discarded.'
+			print(str(e))
+			print('ERROR: Failed to parse JSON; changes discarded.')
 		else:
 			# confirm new config
 			if prompt('Save changes?', 'y') in ['y', 'Y']:
@@ -358,7 +352,7 @@ editconfig_parser.set_defaults(func=cmd_editconfig)
 #
 #
 def cmd_version(args, pwh):
-	print narviversion.version
+	print(narviversion.version)
 version_parser = subparsers.add_parser(
 	'version',
 	description='Displays the version number.',
@@ -377,7 +371,7 @@ def cmd_help(args, pwh):
 		parser.print_help()
 #
 def cmd_help_completions(pwh, sp=subparsers):
-	return sp._name_parser_map.keys()
+	return list(sp._name_parser_map.keys())
 #
 help_parser = subparsers.add_parser(
 	'help',
@@ -388,7 +382,7 @@ help_parser.add_argument(
 	metavar='SUBCMD',
 	help='The SUBCMD for which to display help',
 	nargs='?',
-	choices=subparsers._name_parser_map.keys())
+	choices=list(subparsers._name_parser_map.keys()))
 help_parser.set_defaults(func=cmd_help)
 help_parser.completions = cmd_help_completions
 
@@ -440,13 +434,13 @@ else:
 		readline.parse_and_bind('bind ^I rl_complete')
 		readline.parse_and_bind('bind ^F em-inc-search-prev')
 		readline.parse_and_bind('bind ^R em-inc-search-next')
-		# hack for the equivalent of set_completer_delims():
-		import ctypes
-		readline.my_completer_delims = ctypes.create_string_buffer(' ')
-		brkchars = ctypes.c_char_p.in_dll(
-			ctypes.CDLL('/usr/lib/libedit.dylib'),
-			'rl_basic_word_break_characters')
-		brkchars.value = ctypes.addressof(readline.my_completer_delims)
+		## hack for the equivalent of set_completer_delims():
+		#import ctypes
+		#readline.my_completer_delims = ctypes.create_string_buffer(' ')
+		#brkchars = ctypes.c_char_p.in_dll(
+		#	ctypes.CDLL('/usr/lib/libedit.dylib'),
+		#	'rl_basic_word_break_characters')
+		#brkchars.value = ctypes.addressof(readline.my_completer_delims)
 	else:
 		readline.parse_and_bind('tab: complete')
 		readline.parse_and_bind('Control-f: reverse-search-history')
@@ -471,7 +465,7 @@ def readline_history_restore(r, h):
 #
 #
 def interactive(parser, prompt, pwh, completer):
-	print 'narvi -- A Password Craftsman, v' + narviversion.version
+	print('narvi -- A Password Craftsman, v' + narviversion.version)
 	# start with hash
 	saltid = cmd_hash_salt_prompt(pwh, completer)
 	if saltid.strip():
@@ -486,7 +480,7 @@ def interactive(parser, prompt, pwh, completer):
 		global icomplete_choices
 		subparser = parser._subparsers._actions[1]
 		if state == 0 and readline.get_begidx() == 0:
-			subcmds = subparser._name_parser_map.keys()
+			subcmds = list(subparser._name_parser_map.keys())
 			subcmds.append('quit')
 			choices = sorted(subcmds)
 		elif state == 0:
@@ -509,7 +503,7 @@ def interactive(parser, prompt, pwh, completer):
 		else:
 			oldcompleter = None
 		try:
-			l = raw_input(prompt)
+			l = input(prompt)
 		except KeyboardInterrupt:
 			sys.stdout.write('\n')
 			continue
@@ -526,7 +520,7 @@ def interactive(parser, prompt, pwh, completer):
 			args = parser.parse_args(argv)
 		except NarviParserError as e:
 			if e.errstr:
-				print e.errstr
+				print(e.errstr)
 		else:
 			cmdhistory = readline_history_save(readline)
 			try:

@@ -33,7 +33,7 @@ def build_narvi(build):
 def build_narviversionpy(build):
 	versionpy = os.path.join(build.objroot, 'narviversion.py')
 	f = open(versionpy, 'wb')
-	f.write('version = \'' + build.version + '\'\n')
+	f.write(('version = \'' + build.version + '\'\n').encode())
 	f.close()
 	build.zipcontents['narviversion.py'] = versionpy
 

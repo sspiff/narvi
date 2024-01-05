@@ -126,10 +126,10 @@ def _distro(abet, buf):
 		d[c] = 0
 	for c in buf:
 		d[c] += 1
-	for g in [sorted(d.keys())[x:x+5] for x in xrange(0, len(d), 5)]:
+	for g in [sorted(d.keys())[x:x+5] for x in range(0, len(d), 5)]:
 		for c in g:
-			print c + ':', d[c], '\t',
-		print ''
+			print(c + ':', d[c], '\t', end=' ')
+		print('')
 
 
 # amnb allows: +_%!$&*-

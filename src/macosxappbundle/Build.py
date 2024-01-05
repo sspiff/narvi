@@ -48,10 +48,10 @@ def build_macicns(build):
 	os.mkdir(iconset)
 	for i in [16, 32, 128, 256, 512]:
 		f = 'icon_' + str(i) + 'x' + str(i) + '.png'
-		print '\tGenerating', f
+		print('\tGenerating', f)
 		build.export_icon_png(os.path.join(iconset, f), i)
 		f = 'icon_' + str(i) + 'x' + str(i) + '@2x.png'
-		print '\tGenerating', f
+		print('\tGenerating', f)
 		build.export_icon_png(os.path.join(iconset, f), (i*2))
 	# next, create the icns file
 	icnsfile = os.path.join(build.macappbundle['resources'], 'narvi.icns')
@@ -60,7 +60,7 @@ def build_macicns(build):
 		subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 	except subprocess.CalledProcessError as e:
 		import sys
-		sys.stderr.write(e.output)
+		sys.stderr.write(e.output.decode())
 		raise e
 	shutil.copy(
 		os.path.join(icnsroot, 'narvi.icns'),
@@ -77,7 +77,7 @@ def build_macinfoplist(build):
 	plist['CFBundleShortVersionString'] = build.version
 	#
 	plistfile = os.path.join(build.macappbundle['contents'], 'Info.plist')
-	fd = open(plistfile, 'wb')
+	fd = open(plistfile, 'w')
 	fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
 	fd.write('<!DOCTYPE plist PUBLIC "-//Apple/DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n')
 	fd.write('<plist version="1.0">\n')

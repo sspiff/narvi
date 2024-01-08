@@ -62,16 +62,16 @@ def _basic_encoder(pwh, params, keymaterial):
 
 def _base64_encode(pwh, params, keymaterial, isencoder=False):
 	if not isencoder: raise ValueError
-	ekm = base64.b64encode(keymaterial, params['altchars'])
+	ekm = base64.b64encode(keymaterial, params['altchars'].encode())
 	# ignore any final padding
-	return ekm[:-4]
+	return ekm[:-4].decode()
 
 
 def _base32_encode(pwh, params, keymaterial, isencoder=False):
 	if not isencoder: raise ValueError
 	ekm = base64.b32encode(keymaterial)
 	# ignore any final padding
-	return ekm[:-8]
+	return ekm[:-8].decode()
 
 
 def _mindex1_encode(pwh, params, keymaterial, isencoder=False):

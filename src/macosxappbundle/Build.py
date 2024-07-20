@@ -84,7 +84,14 @@ def build_macinfoplist(build):
 	fd.write('<dict>\n')
 	for k in plist:
 		fd.write('\t<key>' + k + '</key>\n')
-		fd.write('\t<string>' + plist[k] + '</string>\n')
+		v = plist[k]
+		if isinstance(v, list):
+			fd.write('\t<array>\n')
+			for i in v:
+				fd.write('\t\t<string>' + i + '</string>\n')
+			fd.write('\t</array>\n')
+		else:
+			fd.write('\t<string>' + plist[k] + '</string>\n')
 	fd.write('</dict>\n')
 	fd.write('</plist>\n')
 	fd.close()

@@ -7,5 +7,6 @@
 "CFBundleExecutable": "narvi-term",
 "CFBundleDevelopmentRegion": "English",
 "CFBundleInfoDictionaryVersion": "6.0",
-"CFBundleIconFile": "narvi.icns"
+"CFBundleIconFile": "narvi.icns",
+"LSArchitecturePriority": ["arm64", "x86_64"]
 }

@@ -35,8 +35,8 @@ def _scrypt_hash(pwh, params, pw, salt):
 		print("INFO: using pure Python scrypt")
 		from . import pyscrypt
 		hashbytes = pyscrypt.hash(
-			password = pw,
-			salt     = salt,
+			password = pw.encode('utf-8'),
+			salt     = salt.encode('utf-8'),
 			N        = params['N'],
 			r        = params['r'],
 			p        = params['p'],

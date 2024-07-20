@@ -26,8 +26,8 @@
 
 @build_step('pyscrypt', [], ['zipcontents'])
 def build_pyscrypt(build):
-	pyscryptsrcfile = 'pyscrypt-1.5.0.tar.gz'
-	pyscryptmoddir  = 'pyscrypt-1.5.0/pyscrypt/'
+	pyscryptsrcfile = 'pyscrypt-1.6.1.tar.gz'
+	pyscryptmoddir  = 'pyscrypt-1.6.1/pyscrypt/'
 
 	zipdir = 'pwhash/plugins/pwh_scrypt/pyscrypt/'
 
